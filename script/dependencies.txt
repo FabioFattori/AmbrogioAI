@@ -1,0 +1,8 @@
+numpy
+matplotlib
+tensorflow
+pillow
+scipy
+scikit-learn
+tqdm
+prettytable
