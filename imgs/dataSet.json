@@ -1,0 +1,24 @@
+{
+    "imgs":[
+        {
+            "name":"e1.png",
+            "label":"elegante"
+        },
+        {
+            "name":"e2.png",
+            "label":"elegante"
+        },
+        {
+            "name":"c1.png",
+            "label":"casual"
+        },
+        {
+            "name":"c2.png",
+            "label":"casual"
+        },
+        {
+            "name":"s1.png",
+            "label":"sportivo"
+        }
+    ]
+}
