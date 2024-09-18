@@ -9,3 +9,15 @@ class Connection:
     
     def __eq__(self, value: object) -> bool:
         return self.to == value.to and self.from_ == value.from_
+    
+    def getReceiver(self):
+        return self.to
+    
+    def getSender(self):
+        return self.from_
+    
+    def getWeight(self):
+        return self.weight
+    
+    def updateWeight(self, newWeight):
+        self.weight = newWeight

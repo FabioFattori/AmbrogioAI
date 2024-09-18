@@ -8,7 +8,9 @@ class SoftMaxNeuron:
         pass
     
     def calcCrossEntropyLoss(self, y, y_hat):
-        return -np.sum(y * np.log(y_hat))
+        epsilon = 1e-8  # Evita log(0)
+        return -np.sum(y * np.log(y_hat + epsilon))
+
     
     def calcFinalProbabilities(self, y):
         e_x = np.exp(y - np.max(y))
@@ -25,6 +27,8 @@ class SoftMaxNeuron:
         if giver not in self.dataGivers:
             self.dataGivers.append(giver)
     
+    def getGivers(self):
+        return self.dataGivers
     
     def __str__(self) -> str:
         return "SoftMaxNeuron"

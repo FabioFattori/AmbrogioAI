@@ -1,3 +1,4 @@
+import numpy as np
 
 class Neuron:
     def __init__(self,bias,id):
@@ -14,6 +15,9 @@ class Neuron:
         for taker in self.dataTakers:
             out = self.output()
             taker.receiveData(out)
+
+    def sigmoid(self,x):
+        return 1/(1+np.exp(-x))
             
     def output(self,cacher):
         if cacher.keyExists(self.id):
@@ -22,11 +26,11 @@ class Neuron:
             out = self.input + self.bias
             for giver in self.dataGivers:
                 out += giver.from_.output(cacher) * giver.weight
-                cacher.set(giver.from_.id, max(0, out + self.bias))
+                cacher.set(giver.from_.id, self.sigmoid(out))
             
         #print(f"Neuron {self.id} output: {max(0, out + self.bias)}")
         
-        return max(0, out + self.bias)
+        return self.sigmoid(out)
     
     def getGivers(self):
         return self.dataGivers
