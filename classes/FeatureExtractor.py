@@ -1,10 +1,13 @@
-from keras.applications.vgg16 import VGG16, preprocess_input
-from keras.preprocessing import image
-from keras.models import Model
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import numpy as np
 import os
+
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+from keras.applications.vgg16 import VGG16, preprocess_input
+from keras.preprocessing import image
+from keras.models import Model
 
 class FeatureExtractor:
 

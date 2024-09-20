@@ -9,6 +9,22 @@
             "label":"elegante"
         },
         {
+            "name":"e3.png",
+            "label":"elegante"
+        },
+        {
+            "name":"e4.png",
+            "label":"elegante"
+        },
+        {
+            "name":"e5.png",
+            "label":"elegante"
+        },
+        {
+            "name":"e6.png",
+            "label":"elegante"
+        },
+        {
             "name":"c1.png",
             "label":"casual"
         },
@@ -17,7 +33,27 @@
             "label":"casual"
         },
         {
+            "name":"c3.png",
+            "label":"casual"
+        },
+        {
+            "name":"c4.png",
+            "label":"casual"
+        },
+        {
+            "name":"c5.png",
+            "label":"casual"
+        },
+        {
             "name":"s1.png",
+            "label":"sportivo"
+        },
+        {
+            "name":"s2.png",
+            "label":"sportivo"
+        },
+        {
+            "name":"s3.png",
             "label":"sportivo"
         }
     ]

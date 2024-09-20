@@ -26,7 +26,8 @@ class Neuron:
             out = self.input + self.bias
             for giver in self.dataGivers:
                 out += giver.from_.output(cacher) * giver.weight
-                cacher.set(giver.from_.id, self.sigmoid(out))
+            out += self.bias
+            cacher.set(self.id, self.sigmoid(out))
             
         #print(f"Neuron {self.id} output: {max(0, out + self.bias)}")
         

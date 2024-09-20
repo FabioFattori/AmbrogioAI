@@ -8,8 +8,7 @@ class SoftMaxNeuron:
         pass
     
     def calcCrossEntropyLoss(self, y, y_hat):
-        epsilon = 1e-8  # Evita log(0)
-        return -np.sum(y * np.log(y_hat + epsilon))
+        return -np.log(np.sum(y * y_hat))
 
     
     def calcFinalProbabilities(self, y):

@@ -22,6 +22,11 @@ class Ambrogio:
         # Create the neurons
         i = 20
         idGiver = id.IdGiver()
+        
+        # create the input layer with the same number of neurons as the number of features extracted from the images => 4096
+        layer = [Neu.Neuron(random.randrange(0,10),idGiver.giveId()) for x in range(4096)]
+        self.neurons.append(layer)
+        
         while i > 0:
             if i-2 == 0:
                 layer = [Neu.Neuron(random.randrange(0,10),idGiver.giveId()) for x in range(len(getClasses.getClasses()))]
@@ -105,53 +110,3 @@ class Ambrogio:
         
         print(f"La classe predetta è: {getClasses.getClasses()[np.argmax(predictions)]}")
     
-    def train(self,filePaths,learningRate = 0.01,epocs = 2):
-        with tqdm(total=100) as pbar:    
-            for epoc in range(epocs):
-                print(f"Epoca {epoc+1}/{epocs}")
-                for path in filePaths:
-                    featureMap = fe.FeatureExtractor().extract_features(path)
-                    self.predict(featureMap)
-                    self.backpropagation(learningRate,path)
-                pbar.update(1)
-    
-    def backpropagation(self, learningRate, path):
-        # Calcolo dell'errore
-        y_true = dsm.DataSetManager().getCorrentPredictionOfImage(path)
-        y_pred = self.neurons[-1][0].output(self.cacher)
-        error = self.neurons[-1][0].calcCrossEntropyLoss(y_true, y_pred)
-        print("Errore: ", error)
-
-        print("y => ", y_true)
-        print("y_hat => ", y_pred)
-
-        # check if the error is nan or inf
-        if np.isnan(error) or np.isinf(error):
-            print("Errore nan o inf")
-            return
-
-        # Calcolo del gradiente dell'errore rispetto all'output
-        delta = y_pred - y_true
-
-        # Aggiornamento dei pesi
-        for i in reversed(range(len(self.neurons))):
-            layer = self.neurons[i]
-            new_delta = np.zeros(len(layer))  # Delta per il layer precedente
-            for j, neuron in enumerate(layer):
-                neuron_output = neuron.output(self.cacher)  # Output del neurone attuale
-                for giver in neuron.getGivers():
-                    # Calcolo del gradiente rispetto al peso
-                    gradient = delta[j] * giver.from_.output(self.cacher)
-                    # Aggiornamento del peso
-                    giver.weight -= learningRate * gradient
-                    # Calcolo del nuovo delta per il layer precedente (derivata sigmoid o altra attivazione)
-                    new_delta[j] += delta[j] * giver.weight * neuron_output * (1 - neuron_output)
-            delta = new_delta  # Passa al layer precedente
-
-        # Reset del cacher
-        self.cacher = Cacher.Cacher()
-    
-        
-    
-    def getConnectionsOfNeuron(self,neuron):
-        return neuron.getGivers()
