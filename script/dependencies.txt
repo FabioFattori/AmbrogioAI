@@ -1,4 +1,7 @@
 numpy
+pyparsing
+python-dateutil
+requests
 matplotlib
 tensorflow
 pillow
