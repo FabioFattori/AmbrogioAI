@@ -5,6 +5,7 @@ class Neuron:
         self.bias = bias
         self.dataGivers = []
         self.dataTakers = []
+        self.delta = 0
         self.id = id
         self.input = 0
         
@@ -16,8 +17,16 @@ class Neuron:
             out = self.output()
             taker.receiveData(out)
 
-    def sigmoid(self,x):
+    def sigmoid(self,x,deriv=False):
+        if deriv:
+            return x*(1-x)
         return 1/(1+np.exp(-x))
+    
+    def ReLu(self,x,derivative=False):
+        if derivative:
+            return 1 * (x > 0)  #returns 1 for any x > 0, and 0 otherwise
+        
+        return max(0, x)
             
     def output(self,cacher):
         if cacher.keyExists(self.id):
@@ -52,6 +61,9 @@ class Neuron:
     def appendTaker(self,taker):
         if taker not in self.dataTakers and taker not in self.dataGivers:
             self.dataTakers.append(taker)
+
+    def getNeuronObject(self):
+        return self
     
     
     def __str__(self) -> str:

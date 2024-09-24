@@ -29,7 +29,7 @@ class DataSetManager:
         return None
     
     # NOT TESTED FUNCTION
-    def getImageRandomImage(self):
+    def getRandomImage(self):
         # go in the imgs folder and get a random image from a random class
         classes = getClasses.getClasses()
         randomClass = random.choice(classes)
@@ -37,4 +37,15 @@ class DataSetManager:
         images = os.listdir(pathChosen)
         
         return pathChosen + random.choice(images)        
+    
+    def partitionDataSet(self):
+        # partition the data set into training and test set
+        images = self.getAllImages()
+        random.shuffle(images)
+        trainingSet = images[:int(len(images)*0.3)]
+        convalidationSet = images[int(len(images)*0.3):int(len(images)*0.6)]
+        testSet = images[int(len(images)*0.6):]
+        
+        
+        return trainingSet,convalidationSet, testSet
         

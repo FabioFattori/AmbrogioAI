@@ -12,15 +12,19 @@ class SoftMaxNeuron:
 
     
     def calcFinalProbabilities(self, y):
+        print("output of NN => ",y)
         e_x = np.exp(y - np.max(y))
         return e_x / e_x.sum(axis=0)
     
     def output(self,cacher):
-        out = np.empty(len(self.dataGivers))
-        for giver in self.dataGivers:
-            np.append(out,cacher.get(giver.from_.id))
-            
-        return self.calcFinalProbabilities(out)
+        if cacher.keyExists(self.id):
+            return cacher.get(self.id)
+        else:
+            out = np.empty(len(self.dataGivers))
+            for giver in self.dataGivers:
+                np.append(out,cacher.get(giver.from_.id))
+            cacher.set(self.id, self.calcFinalProbabilities(out))
+            return cacher.get(self.id)
     
     def appendGiver(self,giver):
         if giver not in self.dataGivers:

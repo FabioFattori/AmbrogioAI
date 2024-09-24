@@ -4,26 +4,25 @@ import utilities.drawANN as draw
 import classes.FeatureExtractor as fe
 import utilities.DataSetManager as dsm
 from tqdm import tqdm
+import classes.SoftMaxNeuron as sft
 
 
 print(getClasses.getClasses())
 
 ambrogio = A.Ambrogio()
 
-pathToFile = "imgs/sportivo/s1.png"
+#ambrogio.predict(fe.FeatureExtractor().extract_features(dsm.DataSetManager().getRandomImage()))
 
-
-featureMap = fe.FeatureExtractor().extract_features(dsm.DataSetManager().getAllImages()[0])
-
-
-prediction = ambrogio.predict(featureMap)
-
-layers = ambrogio.neurons
+for i in range(len(ambrogio.neurons)):
+    print(f"Layer {i}:")
+    print("weights in this layer:",ambrogio.getMatrixOfWeightsGivenNLayer(i))
+    print("\n")
 
 print("si vuole disegnare la rete neurale? [y/n]")
 if input() == 'y':
     try:
         with tqdm(total=100) as pbar:
+            layers = ambrogio.getNeurons()
             g = draw.draw_neural_network(layers)
             pbar.update(50)
             g.render('Ambrogio', view=True,format='png')
