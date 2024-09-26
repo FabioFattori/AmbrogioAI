@@ -14,14 +14,17 @@ random.seed(1)
 
 maxRand = 10
 minRand = 1
-reducer = 10
+reducer = 1000000
 
 class Ambrogio:
-    def __init__(self):
+    def __init__(self,usingALoadedModel=False) -> None:
         self.layers = []
         self.activations = []
         self.derivatives = []
         self.createStructure()
+        self.newWeightsFromTraining = None
+        if usingALoadedModel:
+            self.loadState()
     
     def createStructure(self):
         # Create the neurons
@@ -77,10 +80,7 @@ class Ambrogio:
                     return neuron
         return None
     
-    def predict(self, inputs):
-        print("sonoqui => ",len(self.activations))
-        print(len(self.getMatrixOfWeights()))
-        
+    def predict(self, inputs):        
         # the input layer activation is just the input itself
         activations = inputs
 
@@ -98,7 +98,8 @@ class Ambrogio:
             #if i+1 < len(self.activations):
             self.activations[i+1] = activations
         # return output layer activation
-        return activations
+        predictions = self.layers[-1][0].calcFinalProbabilities(self.activations[-2])
+        return predictions
         
                 
     def __str__(self) -> str:
@@ -127,6 +128,9 @@ class Ambrogio:
         print(f"La classe predetta è: {getClasses.getClasses()[np.argmax(predictions)]}")
     
     def getMatrixOfWeights(self):
+        if self.newWeightsFromTraining is not None:
+            return self.newWeightsFromTraining
+        
         matrix = []
         for i,layer in enumerate(self.layers):
             if i == len(self.layers)-1:
@@ -194,8 +198,7 @@ class Ambrogio:
                 # (this will update the weights
                 self.gradient_descent(learning_rate)
 
-                # keep track of the MSE for reporting later
-                sum_errors += np.average((target - output) ** 2)
+                sum_errors += error
 
             # Epoch complete, report the training error
             print("Error: {} at epoch {}".format(sum_errors / len(inputs), i+1))
@@ -209,10 +212,30 @@ class Ambrogio:
         Args:
             learningRate (float): How fast to learn.
         """
-
+        newMatrix = self.getMatrixOfWeights()
         # update the weights by stepping down the gradient
         for i in range(len(self.getMatrixOfWeights())-1):
             weights = self.getMatrixOfWeights()[i]
             derivatives = self.derivatives[i]
+            #print("before weights => ",weights)
             np.add(weights,derivatives * learningRate, out=weights, casting="unsafe")
-            #weights += derivatives * learningRate
+            newMatrix[i] = weights
+        self.newWeightsFromTraining = newMatrix
+            
+            
+    def loadState(self):
+            data = np.load('state.npz')
+            matrix = []
+            print(len(self.layers)-1)
+            for i in range(len(self.layers)-1):
+                matrix.append(data[f'matrix{i+1}'])
+            for i,layer in enumerate(self.layers):
+                if i == len(self.layers)-1:
+                    break
+                for j,neuron in enumerate(layer):
+                    neuron.weights = matrix[i][j]
+        
+    
+    def saveState(self):
+        m = self.getMatrixOfWeights()
+        np.savez('state.npz', matrix1=m[0], matrix2=m[1], matrix3=m[2], matrix4=m[3], matrix5=m[4], matrix6=m[5], matrix7=m[6], matrix8=m[7], matrix9=m[8], matrix10=m[9], matrix11=m[10])

@@ -20,7 +20,7 @@ class SoftMaxNeuron(Neu.Neuron):
 
     
     def calcFinalProbabilities(self, y):
-        print("output of NN => ",y)
+        #print("output of NN => ",y)
         e_x = np.exp(y - np.max(y))
         return e_x / e_x.sum(axis=0)
     

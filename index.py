@@ -11,6 +11,13 @@ print(getClasses.getClasses())
 
 ambrogio = A.Ambrogio()
 
+print("si vuole caricare lo stato della rete neurale salvato se presente? [y/n]")
+if input() == 'y':
+    
+    with tqdm(total=100) as pbar:
+        ambrogio.loadState()
+        pbar.update(100)
+
 
 #ambrogio.predict(fe.FeatureExtractor().extract_features(dsm.DataSetManager().getRandomImage()))
 #[print("layer {} neuron : {}".format(i,neuron)) for i,layer in enumerate(ambrogio.getNeurons()) for neuron in layer]
@@ -18,32 +25,46 @@ ambrogio = A.Ambrogio()
 dataSet = dsm.DataSetManager()
 featureExtractor = fe.FeatureExtractor()
 
-inputs = [dataSet.getAllImages()[0]]
-path = inputs
+inputs = dataSet.getAllImages()
 targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
 inputs = [featureExtractor.extract_features(path) for path in inputs]
 
-ambrogio.train(inputs,targets,20,1)
-print(path[0])
-pred = ambrogio.predict(inputs)
-print(pred)
-print(ambrogio.activations[10])
+# print("input : ",path)
+# pred = ambrogio.predict(inputs[0])
 
+# ambrogio.showPrediction(pred)
 
-ambrogio.showPrediction(ambrogio.getNeuron("SoftMaxNeuron").calcFinalProbabilities(pred))
+ambrogio.train(inputs,targets,100000,0.5)
 
-print("si vuole disegnare la rete neurale? [y/n]")
-if input() == 'y':
-    try:
+inputs = dataSet.getRandomImage()
+print(inputs)
+out = ambrogio.predict(featureExtractor.extract_features(inputs))
+ambrogio.showPrediction(out)
+
+print("si vuole salvare lo stato della rete neurale? [y/n]")
+try:
+    if input() == 'y':
         with tqdm(total=100) as pbar:
-            layers = ambrogio.getNeurons()
-            g = draw.draw_neural_network(layers)
-            pbar.update(50)
-            g.render('Ambrogio', view=True,format='png')
-            pbar.update(50)
+            ambrogio.saveState()
+            pbar.update(100)
+except Exception as e:
+    print("non ho capito")
+    
+
+    
+
+# print("si vuole disegnare la rete neurale? [y/n]")
+# if input() == 'y':
+#     try:
+#         with tqdm(total=100) as pbar:
+#             layers = ambrogio.getNeurons()
+#             g = draw.draw_neural_network(layers)
+#             pbar.update(50)
+#             g.render('Ambrogio', view=True,format='png')
+#             pbar.update(50)
         
-    except Exception as e:
-        print(e)
-        print("Errore nel disegno del grafo del modello, probabilmente non hai inserito nel path il programma dot di graphviz")
-else:
-    print("ok, non disegno il grafo")
+#     except Exception as e:
+#         print(e)
+#         print("Errore nel disegno del grafo del modello, probabilmente non hai inserito nel path il programma dot di graphviz")
+# else:
+#     print("ok, non disegno il grafo")

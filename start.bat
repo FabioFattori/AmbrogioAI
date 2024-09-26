@@ -1,3 +1,3 @@
-
+cls
 python index.py
 

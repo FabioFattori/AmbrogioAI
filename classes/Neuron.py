@@ -17,7 +17,7 @@ class Neuron:
         if deriv:
             return x * (1.0 - x)
         #print("x => ",x)
-        toret = 1.0 / (1 + np.exp(-x))
+        toret = 1.0 / (1.0 + np.exp(-x))
         return toret
     
     def ReLu(self,x,derivative=False):

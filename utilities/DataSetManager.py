@@ -28,7 +28,6 @@ class DataSetManager:
                 return toRet
         return None
     
-    # NOT TESTED FUNCTION
     def getRandomImage(self):
         # go in the imgs folder and get a random image from a random class
         classes = getClasses.getClasses()
@@ -38,6 +37,9 @@ class DataSetManager:
         
         return pathChosen + random.choice(images)        
     
+    '''
+    return 0 => the training set, 1 => the convalidation set and 2 => the test set
+    '''
     def partitionDataSet(self):
         # partition the data set into training and test set
         images = self.getAllImages()
@@ -48,4 +50,5 @@ class DataSetManager:
         
         
         return trainingSet,convalidationSet, testSet
+    
         
