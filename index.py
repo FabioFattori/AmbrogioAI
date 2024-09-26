@@ -5,18 +5,32 @@ import classes.FeatureExtractor as fe
 import utilities.DataSetManager as dsm
 from tqdm import tqdm
 import classes.SoftMaxNeuron as sft
-
+import random
 
 print(getClasses.getClasses())
 
 ambrogio = A.Ambrogio()
 
-#ambrogio.predict(fe.FeatureExtractor().extract_features(dsm.DataSetManager().getRandomImage()))
 
-for i in range(len(ambrogio.neurons)):
-    print(f"Layer {i}:")
-    print("weights in this layer:",ambrogio.getMatrixOfWeightsGivenNLayer(i))
-    print("\n")
+#ambrogio.predict(fe.FeatureExtractor().extract_features(dsm.DataSetManager().getRandomImage()))
+#[print("layer {} neuron : {}".format(i,neuron)) for i,layer in enumerate(ambrogio.getNeurons()) for neuron in layer]
+
+dataSet = dsm.DataSetManager()
+featureExtractor = fe.FeatureExtractor()
+
+inputs = [dataSet.getAllImages()[0]]
+path = inputs
+targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
+inputs = [featureExtractor.extract_features(path) for path in inputs]
+
+ambrogio.train(inputs,targets,20,1)
+print(path[0])
+pred = ambrogio.predict(inputs)
+print(pred)
+print(ambrogio.activations[10])
+
+
+ambrogio.showPrediction(ambrogio.getNeuron("SoftMaxNeuron").calcFinalProbabilities(pred))
 
 print("si vuole disegnare la rete neurale? [y/n]")
 if input() == 'y':

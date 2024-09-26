@@ -1,103 +1,232 @@
-from math import exp
-from random import seed
-from random import random
+import numpy as np
+import random as random
 
-# Initialize a network
-def initialize_network(n_inputs, n_hidden, n_outputs):
-	network = list()
-	hidden_layer = [{'weights':[random() for i in range(n_inputs + 1)]} for i in range(n_hidden)]
-	network.append(hidden_layer)
-	output_layer = [{'weights':[random() for i in range(n_hidden + 1)]} for i in range(n_outputs)]
-	network.append(output_layer)
-	return network
+random.seed(1)
 
-# Calculate neuron activation for an input
-def activate(weights, inputs):
-	activation = weights[-1]
-	for i in range(len(weights)-1):
-		activation += weights[i] * inputs[i]
-	return activation
+class MLP(object):
+    """A Multilayer Perceptron class.
+    """
 
-# Transfer neuron activation
-def transfer(activation):
-	return 1.0 / (1.0 + exp(-activation))
+    def __init__(self, num_inputs=3, hidden_layers=[3, 3], num_outputs=2):
+        """Constructor for the MLP. Takes the number of inputs,
+            a variable number of hidden layers, and number of outputs
 
-# Forward propagate input to a network output
-def forward_propagate(network, row):
-	inputs = row
-	for layer in network:
-		new_inputs = []
-		for neuron in layer:
-			activation = activate(neuron['weights'], inputs)
-			neuron['output'] = transfer(activation)
-			new_inputs.append(neuron['output'])
-		inputs = new_inputs
-	return inputs
+        Args:
+            num_inputs (int): Number of inputs
+            hidden_layers (list): A list of ints for the hidden layers
+            num_outputs (int): Number of outputs
+        """
 
-# Calculate the derivative of an neuron output
-def transfer_derivative(output):
-	return output * (1.0 - output)
+        self.num_inputs = num_inputs
+        self.hidden_layers = hidden_layers
+        self.num_outputs = num_outputs
 
-# Backpropagate error and store in neurons
-def backward_propagate_error(network, expected):
-	for i in reversed(range(len(network))):
-		layer = network[i]
-		errors = list()
-		if i != len(network)-1:
-			for j in range(len(layer)):
-				error = 0.0
-				for neuron in network[i + 1]:
-					error += (neuron['weights'][j] * neuron['delta'])
-				errors.append(error)
-		else:
-			for j in range(len(layer)):
-				neuron = layer[j]
-				errors.append(neuron['output'] - expected[j])
-		for j in range(len(layer)):
-			neuron = layer[j]
-			neuron['delta'] = errors[j] * transfer_derivative(neuron['output'])
 
-# Update network weights with error
-def update_weights(network, row, l_rate):
-	for i in range(len(network)):
-		inputs = row[:-1]
-		if i != 0:
-			inputs = [neuron['output'] for neuron in network[i - 1]]
-		for neuron in network[i]:
-			for j in range(len(inputs)):
-				neuron['weights'][j] -= l_rate * neuron['delta'] * inputs[j]
-			neuron['weights'][-1] -= l_rate * neuron['delta']
+        # create a generic representation of the layers
+        layers = [num_inputs] + hidden_layers + [num_outputs]
 
-# Train a network for a fixed number of epochs
-def train_network(network, train, l_rate, n_epoch, n_outputs):
-	for epoch in range(n_epoch):
-		sum_error = 0
-		for row in train:
-			outputs = forward_propagate(network, row)
-			expected = [0 for i in range(n_outputs)]
-			expected[row[-1]] = 1
-			sum_error += sum([(expected[i]-outputs[i])**2 for i in range(len(expected))])
-			backward_propagate_error(network, expected)
-			update_weights(network, row, l_rate)
-		print('>epoch=%d, lrate=%.3f, error=%.3f' % (epoch, l_rate, sum_error))
+        # create random connection weights for the layers
+        weights = []
+        for i in range(len(layers) - 1):
+            w = np.random.rand(layers[i], layers[i + 1])
+            weights.append(w)
+        self.weights = weights
 
-# Test training backprop algorithm
-seed(1)
-dataset = [[2.7810836,2.550537003,0],
-	[1.465489372,2.362125076,0],
-	[3.396561688,4.400293529,0],
-	[1.38807019,1.850220317,0],
-	[3.06407232,3.005305973,0],
-	[7.627531214,2.759262235,1],
-	[5.332441248,2.088626775,1],
-	[6.922596716,1.77106367,1],
-	[8.675418651,-0.242068655,1],
-	[7.673756466,3.508563011,1]]
-n_inputs = len(dataset[0]) - 1
-n_outputs = len(set([row[-1] for row in dataset]))
-print(n_outputs)
-print(n_inputs)
-network = initialize_network(n_inputs, 2, n_outputs)
-train_network(network, dataset, 0.6, 100, n_outputs)
-for layer in network:
-	print(layer)
+        # save derivatives per layer
+        derivatives = []
+        for i in range(len(layers) - 1):
+            d = np.zeros((layers[i], layers[i + 1]))
+            derivatives.append(d)
+        self.derivatives = derivatives
+
+        # save activations per layer
+        activations = []
+        for i in range(len(layers)):
+            a = np.zeros(layers[i])
+            activations.append(a)
+        self.activations = activations
+
+
+    def forward_propagate(self, inputs):
+        """Computes forward propagation of the network based on input signals.
+
+        Args:
+            inputs (ndarray): Input signals
+        Returns:
+            activations (ndarray): Output values
+        """
+
+        print("sonoqui => ",len(self.activations))
+        print(len(self.weights))
+        # the input layer activation is just the input itself
+        activations = inputs
+
+        # save the activations for backpropogation
+        self.activations[0] = activations
+
+        # iterate through the network layers
+        for i, w in enumerate(self.weights):
+            # calculate matrix multiplication between previous activation and weight matrix
+            net_inputs = np.dot(activations, w)
+
+            # apply sigmoid activation function
+            activations = self._sigmoid(net_inputs)
+            # save the activations for backpropogation
+            self.activations[i + 1] = activations
+
+        # return output layer activation
+        return activations
+
+
+    def back_propagate(self, error):
+        """Backpropogates an error signal.
+        Args:
+            error (ndarray): The error to backprop.
+        Returns:
+            error (ndarray): The final error of the input
+        """
+
+        # iterate backwards through the network layers
+        for i in reversed(range(len(self.derivatives))):
+
+            # get activation for previous layer
+            activations = self.activations[i+1]
+
+            # apply sigmoid derivative function
+            delta = error * self._sigmoid_derivative(activations)
+            # reshape delta as to have it as a 2d array
+            delta_re = delta.reshape(delta.shape[0], -1).T
+
+            # get activations for current layer
+            current_activations = self.activations[i]
+            
+            
+            
+
+            # reshape activations as to have them as a 2d column matrix
+            current_activations = current_activations.reshape(current_activations.shape[0],-1)
+
+            # save derivative after applying matrix multiplication
+            self.derivatives[i] = np.dot(current_activations, delta_re)
+
+            # backpropogate the next error
+            error = np.dot(delta, self.weights[i].T)
+
+
+    def train(self, inputs, targets, epochs, learning_rate):
+        """Trains model running forward prop and backprop
+        Args:
+            inputs (ndarray): X
+            targets (ndarray): Y
+            epochs (int): Num. epochs we want to train the network for
+            learning_rate (float): Step to apply to gradient descent
+        """
+        # now enter the training loop
+        for i in range(epochs):
+            sum_errors = 0
+
+            # iterate through all the training data
+            for j, input in enumerate(inputs):
+                target = targets[j]
+
+                # activate the network!
+                output = self.forward_propagate(input)
+
+                error = target - output
+
+                self.back_propagate(error)
+
+                # now perform gradient descent on the derivatives
+                # (this will update the weights
+                self.gradient_descent(learning_rate)
+
+                # keep track of the MSE for reporting later
+                sum_errors += self._mse(target, output)
+
+            # Epoch complete, report the training error
+
+        print("Training complete!")
+        print("=====")
+
+
+    def gradient_descent(self, learningRate=1):
+        """Learns by descending the gradient
+        Args:
+            learningRate (float): How fast to learn.
+        """
+
+        print(len(self.weights))
+        print(len(self.derivatives))
+        # update the weights by stepping down the gradient
+        for i in range(len(self.weights)):
+            weights = self.weights[i]
+            derivatives = self.derivatives[i]
+            weights += derivatives * learningRate
+
+
+    def _sigmoid(self, x):
+        """Sigmoid activation function
+        Args:
+            x (float): Value to be processed
+        Returns:
+            y (float): Output
+        """
+        print(x)
+        y = 1.0 / (1 + np.exp(-x))
+        return y
+
+
+    def _sigmoid_derivative(self, x):
+        """Sigmoid derivative function
+        Args:
+            x (float): Value to be processed
+        Returns:
+            y (float): Output
+        """
+        return x * (1.0 - x)
+
+
+    def _mse(self, target, output):
+        """Mean Squared Error loss function
+        Args:
+            target (ndarray): The ground trut
+            output (ndarray): The predicted values
+        Returns:
+            (float): Output
+        """
+        return np.average((target - output) ** 2)
+
+
+import classes.FeatureExtractor as fsm
+import utilities.DataSetManager as dsm 
+
+if __name__ == "__main__":
+
+    # create a dataset to train a network for the sum operation
+    
+    dataSet = dsm.DataSetManager()
+    featureExtractor = fsm.FeatureExtractor()
+
+    inputs = [dataSet.getAllImages()[0]]
+    targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
+    inputs = [featureExtractor.extract_features(path) for path in inputs]
+
+    # create a Multilayer Perceptron with one hidden layer
+    mlp = MLP(4096, [20,18,16,14,12,10,8,6,4,3], 1)
+
+    print(len(mlp.derivatives))
+    print(len(mlp.activations))
+
+    # train network
+    mlp.train(inputs, targets, 50, 0.1)
+    print("PASSSATO")
+    # create dummy data
+    input = np.array([0.3, 0.1])
+    target = np.array([0.4])
+
+    # get a prediction
+    output = mlp.forward_propagate(input)
+
+    print()
+    print("Our network believes that {} + {} is equal to {}".format(input[0], input[1], output[0]))
+

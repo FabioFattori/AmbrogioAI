@@ -1,12 +1,20 @@
 import numpy as np
+import classes.Neuron as Neu
+import utilities.getClasses as getClasses
 
-class SoftMaxNeuron:
+class SoftMaxNeuron(Neu.Neuron):
     
     def __init__(self) -> None:
         self.id = "SoftMaxNeuron"
-        self.dataGivers = []
+        self.inputs = []
+        self.weights = [0 for x in range(len(getClasses.getClasses()))]
+        self._output = None
         pass
+
+    def receiveData(self, data):
+        self.inputs = data
     
+
     def calcCrossEntropyLoss(self, y, y_hat):
         return -np.log(np.sum(y * y_hat))
 
@@ -16,22 +24,10 @@ class SoftMaxNeuron:
         e_x = np.exp(y - np.max(y))
         return e_x / e_x.sum(axis=0)
     
-    def output(self,cacher):
-        if cacher.keyExists(self.id):
-            return cacher.get(self.id)
-        else:
-            out = np.empty(len(self.dataGivers))
-            for giver in self.dataGivers:
-                np.append(out,cacher.get(giver.from_.id))
-            cacher.set(self.id, self.calcFinalProbabilities(out))
-            return cacher.get(self.id)
-    
-    def appendGiver(self,giver):
-        if giver not in self.dataGivers:
-            self.dataGivers.append(giver)
-    
-    def getGivers(self):
-        return self.dataGivers
+    def output(self):
+        if self._output is None:
+            self._output = self.calcFinalProbabilities(self.inputs)
+        return self._output
     
     def __str__(self) -> str:
         return "SoftMaxNeuron"

@@ -1,26 +1,24 @@
 import numpy as np
 
 class Neuron:
-    def __init__(self,bias,id):
-        self.bias = bias
-        self.dataGivers = []
-        self.dataTakers = []
-        self.delta = 0
+    def __init__(self,id):
+        self._output = None
+        self.weights = []
         self.id = id
         self.input = 0
+
+    def getId(self):
+        return self.id
         
     def receiveData(self,data):
         self.input = data
-        
-    def passDataToTakers(self):
-        for taker in self.dataTakers:
-            out = self.output()
-            taker.receiveData(out)
 
     def sigmoid(self,x,deriv=False):
         if deriv:
-            return x*(1-x)
-        return 1/(1+np.exp(-x))
+            return x * (1.0 - x)
+        #print("x => ",x)
+        toret = 1.0 / (1 + np.exp(-x))
+        return toret
     
     def ReLu(self,x,derivative=False):
         if derivative:
@@ -28,50 +26,21 @@ class Neuron:
         
         return max(0, x)
             
-    def output(self,cacher):
-        if cacher.keyExists(self.id):
-            return cacher.get(self.id)
+    def output(self):
+        #check if the input is a list or a single value
+        if type(self.input) != list:
+            self._output = self.input
+        elif self._output is not None:
+            return self._output
         else:
-            out = self.input + self.bias
-            for giver in self.dataGivers:
-                out += giver.from_.output(cacher) * giver.weight
-            out += self.bias
-            cacher.set(self.id, self.sigmoid(out))
+            self._output = 0
+            for i in range(len(self.weights)-1):
+                self._output += self.weights[i] * self.input[i]
             
-        #print(f"Neuron {self.id} output: {max(0, out + self.bias)}")
-        
-        return self.sigmoid(out)
-    
-    def getGivers(self):
-        return self.dataGivers
-    
-    def getTakers(self):
-        return self.dataTakers
-    
-    def setGivers(self,givers):
-        self.dataGivers = givers
-    
-    def setTakers(self,takers):
-        self.dataTakers = takers
-        
-    def appendGiver(self,giver):
-        if giver not in self.dataGivers and giver not in self.dataTakers:
-            self.dataGivers.append(giver)
-    
-    def appendTaker(self,taker):
-        if taker not in self.dataTakers and taker not in self.dataGivers:
-            self.dataTakers.append(taker)
-
-    def getNeuronObject(self):
-        return self
-    
+        self._output = self.sigmoid(self._output)
+        return self._output
     
     def __str__(self) -> str:
-        toRet = f"Neuron {self.id} with bias: {self.bias}"
-        toRet += "\nData Givers:"
-        for giver in self.dataGivers:
-            toRet += f"\n\t{giver}"
-        toRet += "\nData Takers:"
-        for taker in self.dataTakers:
-            toRet += f"\n\t{taker}"
+        toRet = f"Neuron {self.id}"
+
         return toRet

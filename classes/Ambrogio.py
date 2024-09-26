@@ -1,9 +1,7 @@
-import classes.Connection as c
 import random
 import classes.Neuron as Neu
 import utilities.neuronIdGiver as id
 import classes.SoftMaxNeuron as sft
-import classes.Cacher as Cacher
 from tqdm import tqdm
 import time
 import utilities.getClasses as getClasses
@@ -12,10 +10,17 @@ import numpy as np
 import classes.FeatureExtractor as fe
 import utilities.DataSetManager as dsm
 
+random.seed(1)
+
+maxRand = 10
+minRand = 1
+reducer = 10
+
 class Ambrogio:
     def __init__(self):
-        self.neurons = []
-        self.cacher = Cacher.Cacher()
+        self.layers = []
+        self.activations = []
+        self.derivatives = []
         self.createStructure()
     
     def createStructure(self):
@@ -24,65 +29,76 @@ class Ambrogio:
         idGiver = id.IdGiver()
         
         # create the input layer with the same number of neurons as the number of features extracted from the images => 4096
-        layer = [Neu.Neuron(random.randrange(0,10),idGiver.giveId()) for x in range(4096)]
-        self.neurons.append(layer)
+        layer = [Neu.Neuron(idGiver.giveId()) for x in range(4096)]
+        self.layers.append(layer)
         
         while i > 0:
             if i-2 == 0:
-                layer = [Neu.Neuron(random.randrange(0,10),idGiver.giveId()) for x in range(len(getClasses.getClasses()))]
+                layer = [Neu.Neuron(idGiver.giveId()) for x in range(len(getClasses.getClasses()))]
             else:
-                layer = [Neu.Neuron(random.randrange(0,10),idGiver.giveId()) for x in range(i)]   
+                layer = [Neu.Neuron(idGiver.giveId()) for x in range(i)]   
                 
-            self.neurons.append(layer)
-            if len(self.neurons) > 1:
-                for (neuron) in self.neurons[-2]:
+            self.layers.append(layer)
+            if len(self.layers) > 1:
+                for (neuron) in self.layers[-2]:
                     for n in layer:
-                        randomValue = random.randrange(0,10)
-                        connection = c.Connection(n, randomValue, neuron)
-                        n.appendGiver(connection)
-                        connection = c.Connection(neuron, randomValue, n)
-                        neuron.appendTaker(connection)
+                        randomValue = random.randrange(minRand,maxRand)/reducer
+                        neuron.weights.append(randomValue)
             i-=2
-        self.createSoftmaxLayer()
-            
-    def createSoftmaxLayer(self):
-        softmax = sft.SoftMaxNeuron()
-        for neuron in self.neurons[-1]:
-            randomValue = 1
-            connection = c.Connection(softmax, randomValue, neuron)
-            neuron.appendTaker(connection)
-            softmax.appendGiver(connection)
-        self.neurons.append([softmax])
         
+        # create the softmax layer 
+        self.layers.append([sft.SoftMaxNeuron()])
+        for (neuron) in self.layers[-2]:
+            for n in self.layers[-1]:
+                randomValue = 1
+                neuron.weights.append(randomValue)
+        
+        # save derivatives per layer
+        derivatives = []
+        for i in range(len(self.layers)-1):
+            d = np.zeros((len(self.layers[i]), len(self.layers[i + 1])))
+            derivatives.append(d)
+        self.derivatives = derivatives
+
+        # save activations per layer
+        activations = []
+        for i in range(len(self.layers)):
+            a = np.zeros(len(self.layers[i]))
+            activations.append(a)
+        self.activations = activations
+
     def getNeurons(self):
-        return self.neurons
+        return self.layers
     
     def getNeuron(self, id):
-        for layer in self.neurons:
+        for layer in self.layers:
             for neuron in layer:
                 if neuron.getId() == id:
                     return neuron
         return None
     
-    def getNeuronLayer(self, id):
-        for layer in self.neurons:
-            for neuron in layer:
-                if neuron.getId() == id:
-                    return layer
-        return None
-    
     def predict(self, inputs):
-        self.cacher = Cacher.Cacher()
-        for i in range(min(len(inputs),len(self.neurons[0]))):
-            self.neurons[0][i].receiveData(inputs[i])
-        with tqdm(total=100) as pbar:
-            for layer in self.neurons[1:len(self.neurons)-1]:
-                for neuron in layer:
-                    neuron.output(self.cacher)
-                pbar.update(100/len(self.neurons))
-            pbar.update(100-pbar.n)
-        self.showPrediction(self.neurons[-1][0].output(self.cacher))
-        return self.neurons[-1][0].output(self.cacher)
+        print("sonoqui => ",len(self.activations))
+        print(len(self.getMatrixOfWeights()))
+        
+        # the input layer activation is just the input itself
+        activations = inputs
+
+        # save the activations for backpropogation
+        self.activations[0] = activations
+        # iterate through the network layers
+        for i, w in enumerate(self.getMatrixOfWeights()):
+            # calculate matrix multiplication between previous activation and weight matrix
+            net_inputs = np.dot(activations, w)
+
+            # apply sigmoid activation function
+            activations = self.layers[0][0].sigmoid(net_inputs)
+        
+            # save the activations for backpropogation
+            #if i+1 < len(self.activations):
+            self.activations[i+1] = activations
+        # return output layer activation
+        return activations
         
                 
     def __str__(self) -> str:
@@ -110,52 +126,93 @@ class Ambrogio:
         
         print(f"La classe predetta è: {getClasses.getClasses()[np.argmax(predictions)]}")
     
-    def getMatrixOfWeightsGivenNLayer(self,nLayer):
+    def getMatrixOfWeights(self):
         matrix = []
-        for neuron in self.neurons[nLayer]:
-            matrix.append([giver.getWeight() for giver in neuron.getGivers()])
+        for i,layer in enumerate(self.layers):
+            if i == len(self.layers)-1:
+                break
+            layer = [neuron.weights for neuron in layer]
+            layer = np.array(layer)
+            matrix.append(layer)
         return matrix
-        
-        # Backpropagate error and store in neurons
-    def backward_propagate_error(self, expected):
-        for i in reversed(range(len(self.neurons))):
-            layer = self.neurons[i]
-            errors = list()
-            if i != len(self.neurons)-1:
-                for j in range(len(layer)):
-                    error = 0.0
-                    for neuron in self.neurons[i + 1]:
-                        error += (neuron['weights'][j] * neuron['delta'])
-                    errors.append(error)
-            else:
-                for j in range(len(layer)):
-                    neuron = layer[j]
-                    errors.append(neuron['output'] - expected[j])
-            for j in range(len(layer)):
-                neuron = layer[j]
-                neuron['delta'] = errors[j] * self.neurons[0][0].sigmoid(neuron['output'],True)
-
-    # Update network weights with error
-    def update_weights(self, row, l_rate):
-        for i in range(len(self.neurons)):
-            inputs = row[:-1]
-            if i != 0:
-                inputs = [neuron['output'] for neuron in self[i - 1]]
-            for neuron in self[i]:
-                for j in range(len(inputs)):
-                    neuron['weights'][j] -= l_rate * neuron['delta'] * inputs[j]
-                neuron['weights'][-1] -= l_rate * neuron['delta']
-
-    # Train a network for a fixed number of epochs
-    def train_network(self, train, l_rate, n_epoch, n_outputs):
-        for epoch in range(n_epoch):
-            sum_error = 0
-            for row in train:
-                outputs = self.predict()
-                expected = [0 for i in range(n_outputs)]
-                expected[row[-1]] = 1
-                sum_error += sum([(expected[i]-outputs[i])**2 for i in range(len(expected))])
-                self.backward_propagate_error(expected)
-                self.update_weights( row, l_rate)
-            print('>epoch=%d, lrate=%.3f, error=%.3f' % (epoch, l_rate, sum_error))
     
+    def back_propagate(self, error):
+        """Backpropogates an error signal.
+        Args:
+            error (ndarray): The error to backprop.
+        Returns:
+            error (ndarray): The final error of the input
+        """
+
+        # iterate backwards through the network layers
+        for i in reversed(range(len(self.derivatives))):
+
+            # get activation for previous layer
+            activations = self.activations[i+1]
+
+            # apply sigmoid derivative function
+            delta = error * self.layers[0][0].sigmoid(activations,True)
+
+            # reshape delta as to have it as a 2d array
+            delta_re = delta.reshape(delta.shape[0], -1).T
+
+            # get activations for current layer
+            current_activations = self.activations[i]
+            # reshape activations as to have them as a 2d column matrix
+            current_activations = current_activations.reshape(current_activations.shape[0],-1)
+
+            # save derivative after applying matrix multiplication
+            self.derivatives[i] = np.dot(current_activations, delta_re)
+            # backpropogate the next error
+            error = np.dot(delta, self.getMatrixOfWeights()[i].T)
+
+
+    def train(self, inputs, targets, epochs, learning_rate):
+        """Trains model running forward prop and backprop
+        Args:
+            inputs (ndarray): X
+            targets (ndarray): Y
+            epochs (int): Num. epochs we want to train the network for
+            learning_rate (float): Step to apply to gradient descent
+        """
+        # now enter the training loop
+        for i in range(epochs):
+            sum_errors = 0
+
+            # iterate through all the training data
+            for j, input in enumerate(inputs):
+                target = targets[j]
+
+                # activate the network!
+                output = self.predict(input)
+
+                error = self.layers[-1][0].calcCrossEntropyLoss(target,output)
+
+                self.back_propagate(error)
+
+                # now perform gradient descent on the derivatives
+                # (this will update the weights
+                self.gradient_descent(learning_rate)
+
+                # keep track of the MSE for reporting later
+                sum_errors += np.average((target - output) ** 2)
+
+            # Epoch complete, report the training error
+            print("Error: {} at epoch {}".format(sum_errors / len(inputs), i+1))
+
+        print("Training complete!")
+        print("=====")
+
+
+    def gradient_descent(self, learningRate=1):
+        """Learns by descending the gradient
+        Args:
+            learningRate (float): How fast to learn.
+        """
+
+        # update the weights by stepping down the gradient
+        for i in range(len(self.getMatrixOfWeights())-1):
+            weights = self.getMatrixOfWeights()[i]
+            derivatives = self.derivatives[i]
+            np.add(weights,derivatives * learningRate, out=weights, casting="unsafe")
+            #weights += derivatives * learningRate
