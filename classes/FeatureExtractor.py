@@ -44,8 +44,11 @@ class FeatureExtractor:
         
         # Converti in array NumPy
         features_array = np.array(features_list)
-        
+        features_array = self.normalize(features_array)
         # Riduci la dimensione delle feature estratte a 2D e visualizzale
         return features_array.flatten()
+    
+    def normalize(self, data):
+        return (data - np.min(data)) / (np.max(data) - np.min(data))
     
     

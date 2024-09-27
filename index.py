@@ -5,6 +5,7 @@ import classes.FeatureExtractor as fe
 import utilities.DataSetManager as dsm
 from tqdm import tqdm
 import classes.SoftMaxNeuron as sft
+import numpy as np
 import random
 
 print(getClasses.getClasses())
@@ -30,17 +31,25 @@ inputs = dataSet.getAllImages()
 targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
 inputs = [featureExtractor.extract_features(path) for path in inputs]
 
+# for input in enumerate(inputs):
+#     print(input[1])
+#     #print(np.max(input))
+#     print("====")
+# exit()
+
 # print("input : ",path)
 # pred = ambrogio.predict(inputs[0])
 
 # ambrogio.showPrediction(pred)
 
-ambrogio.train(inputs,targets,100,0.5)
+ambrogio.train(inputs,targets,1000,0.01)
 
 inputs = dataSet.getRandomImage()
 print(inputs)
 out = ambrogio.predict(featureExtractor.extract_features(inputs))
 ambrogio.showPrediction(out)
+print(dataSet.getCorrentPredictionOfImage(inputs))
+print(getClasses.getClasses())
 
 print("si vuole salvare lo stato della rete neurale? [y/n]")
 try:

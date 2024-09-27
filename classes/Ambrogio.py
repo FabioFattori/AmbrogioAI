@@ -14,7 +14,7 @@ random.seed(1)
 
 maxRand = 10
 minRand = 1
-reducer = 1000000
+reducer = 10000
 
 class Ambrogio:
     def __init__(self,usingALoadedModel=False) -> None:
@@ -23,6 +23,8 @@ class Ambrogio:
         self.derivatives = []
         self.createStructure()
         self.newWeightsFromTraining = None
+        self.velocity = [np.zeros_like(weights) for weights in self.getMatrixOfWeights()]
+        self.momentum = 0.9
         if usingALoadedModel:
             self.loadState()
     
@@ -40,10 +42,11 @@ class Ambrogio:
                 layer = [Neu.Neuron(idGiver.giveId()) for x in range(len(getClasses.getClasses()))]
             else:
                 layer = [Neu.Neuron(idGiver.giveId()) for x in range(i)]   
-                
+            
+            # TODO => change the weights initialization, use the initialize_weights function instead of random values
             self.layers.append(layer)
             if len(self.layers) > 1:
-                for (neuron) in self.layers[-2]:
+                for i,(neuron) in enumerate(self.layers[-2]):
                     for n in layer:
                         randomValue = random.randrange(minRand,maxRand)/reducer
                         neuron.weights.append(randomValue)
@@ -73,6 +76,14 @@ class Ambrogio:
     def getNeurons(self):
         return self.layers
     
+    def initialize_weights(self, shape):
+        # Per sigmoid o tanh
+        return np.random.randn(*shape) * np.sqrt(1. / shape[0])
+
+        # Per ReLU
+        # return np.random.randn(*shape) * np.sqrt(2. / shape[0])
+
+    
     def getNeuron(self, id):
         for layer in self.layers:
             for neuron in layer:
@@ -90,7 +101,7 @@ class Ambrogio:
         for i, w in enumerate(self.getMatrixOfWeights()):
             # calculate matrix multiplication between previous activation and weight matrix
             net_inputs = np.dot(activations, w)
-
+            print("weight shape => ",w.shape)
             # apply sigmoid activation function
             activations = self.layers[0][0].sigmoid(net_inputs)
         
@@ -181,7 +192,8 @@ class Ambrogio:
         """
         # now enter the training loop
         for i in range(epochs):
-            sum_errors = 0
+            firstError = 0
+            lastError = 0
 
             # iterate through all the training data
             for j, input in enumerate(inputs):
@@ -198,11 +210,17 @@ class Ambrogio:
                 # (this will update the weights
                 self.gradient_descent(learning_rate)
 
-                sum_errors += error
+                if j == 0:
+                    firstError = error
+                else:
+                    lastError = error
 
             # Epoch complete, report the training error
-            print("Error: {} at epoch {}".format(sum_errors / len(inputs), i+1))
-
+            print("=====")
+            print(f"Error at epoch {i}") 
+            print("error at the start of epoch => ",firstError)
+            print("error at the end of epoch => ",lastError)
+            print("=====")
         print("Training complete!")
         print("=====")
 
@@ -220,6 +238,26 @@ class Ambrogio:
             #print("before weights => ",weights)
             np.add(weights,derivatives * learningRate, out=weights, casting="unsafe")
             newMatrix[i] = weights
+        self.newWeightsFromTraining = newMatrix
+
+    
+    """Aggiorna i pesi usando il gradient descent con momentum."""
+    def gradient_descent_with_momentum(self, learningRate=1):
+        
+        newMatrix = self.getMatrixOfWeights()
+        # aggiorna i pesi scendendo lungo il gradiente con momentum
+        for i in range(len(self.getMatrixOfWeights()) - 1):
+            weights = self.getMatrixOfWeights()[i]
+            derivatives = self.derivatives[i]
+            
+            # Aggiorna la velocità con momentum
+            self.velocity[i] = self.momentum * self.velocity[i] - learningRate * derivatives
+            
+            # Aggiorna i pesi usando la velocità
+            np.add(weights, self.velocity[i], out=weights, casting="unsafe")
+            
+            newMatrix[i] = weights
+        
         self.newWeightsFromTraining = newMatrix
             
             
