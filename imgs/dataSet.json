@@ -55,6 +55,157 @@
         {
             "name":"s3.png",
             "label":"sportivo"
+        },
+        {
+            "name": "sportivoo.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "spor.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "sp.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "sportiv.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "sport.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "spo.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "sporti.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "sportivo.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "s.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "casu.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "casua.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "casual.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "cas.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "c.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "ca.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "eleg.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "elega.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "elegan.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "ele.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "e.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "image_13.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "image_12.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "image_10.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "image_2.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "image_4.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "image_25.jpg",
+            "label": "elegante"
+        },{
+            "name": "20240927095051.jpg",
+            "label": "sportivo"
+        },
+        {
+            "name": "20240927095031.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "20240927095025.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "20240927095047.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "20240927095048.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "20240927095059.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "20240927095042.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "20240927095056.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "20240927095050.jpg",
+            "label": "elegante"
+        },
+        {
+            "name": "20240927100129.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "20240927100127.jpg",
+            "label": "casual"
+        },
+        {
+            "name": "20240927100134.jpg",
+            "label": "casual"
         }
     ]
 }

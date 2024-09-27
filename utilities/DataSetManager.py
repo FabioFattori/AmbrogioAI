@@ -15,6 +15,11 @@ class DataSetManager:
             pathChosen = self.imagesPath + c + "/"
             images += [pathChosen + i for i in os.listdir(pathChosen)]
         
+        for i,path in enumerate(images):
+            # check if in path is contained .DS_Store
+            if ".DS_Store" in path:
+                images.pop(i)
+        
         return images
     
     def getCorrentPredictionOfImage(self,imagePath):

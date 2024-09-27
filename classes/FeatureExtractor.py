@@ -25,6 +25,7 @@ class FeatureExtractor:
         """
         features_list = []
         
+        print(f"Extracting features from image: {img_path}")
         
         # Verifica se il file esiste
         if not os.path.isfile(img_path):

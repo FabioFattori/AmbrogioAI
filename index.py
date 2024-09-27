@@ -26,6 +26,7 @@ dataSet = dsm.DataSetManager()
 featureExtractor = fe.FeatureExtractor()
 
 inputs = dataSet.getAllImages()
+
 targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
 inputs = [featureExtractor.extract_features(path) for path in inputs]
 
@@ -34,7 +35,7 @@ inputs = [featureExtractor.extract_features(path) for path in inputs]
 
 # ambrogio.showPrediction(pred)
 
-ambrogio.train(inputs,targets,100000,0.5)
+ambrogio.train(inputs,targets,100,0.5)
 
 inputs = dataSet.getRandomImage()
 print(inputs)
@@ -68,3 +69,5 @@ except Exception as e:
 #         print("Errore nel disegno del grafo del modello, probabilmente non hai inserito nel path il programma dot di graphviz")
 # else:
 #     print("ok, non disegno il grafo")
+
+
