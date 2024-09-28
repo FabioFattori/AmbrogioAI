@@ -43,21 +43,19 @@ class Ambrogio:
             else:
                 layer = [Neu.Neuron(idGiver.giveId()) for x in range(i)]   
             
-            # TODO => change the weights initialization, use the initialize_weights function instead of random values
             self.layers.append(layer)
-            if len(self.layers) > 1:
-                for i,(neuron) in enumerate(self.layers[-2]):
-                    for n in layer:
-                        randomValue = random.randrange(minRand,maxRand)/reducer
-                        neuron.weights.append(randomValue)
             i-=2
+            
         
         # create the softmax layer 
         self.layers.append([sft.SoftMaxNeuron()])
-        for (neuron) in self.layers[-2]:
-            for n in self.layers[-1]:
-                randomValue = 1
-                neuron.weights.append(randomValue)
+        
+        for i,layer in enumerate(self.layers):
+            if i == len(self.layers)-1:
+                break
+            weigthMatrix = self.initialize_weights((len(layer),len(self.layers[i+1])))
+            for j,neuron in enumerate(layer):
+                neuron.weights = weigthMatrix[j]
         
         # save derivatives per layer
         derivatives = []
@@ -101,7 +99,6 @@ class Ambrogio:
         for i, w in enumerate(self.getMatrixOfWeights()):
             # calculate matrix multiplication between previous activation and weight matrix
             net_inputs = np.dot(activations, w)
-            print("weight shape => ",w.shape)
             # apply sigmoid activation function
             activations = self.layers[0][0].sigmoid(net_inputs)
         

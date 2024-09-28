@@ -6,7 +6,10 @@ class DataSetManager:
     def __init__(self):
         self.imagesPath = "imgs/"
         self.jsonPath = "imgs\dataSet.json"
-        
+    
+    '''
+    get the entire dataset in a form of a list of image paths
+    '''
     def getAllImages(self):
         # get all the images from the imgs folder
         classes = getClasses.getClasses()
@@ -22,6 +25,9 @@ class DataSetManager:
         
         return images
     
+    '''
+    given the path of the image, return the correct prediction of the image that ambrogio should return
+    '''
     def getCorrentPredictionOfImage(self,imagePath):
         # get the correct prediction of the image
         classes = getClasses.getClasses()
@@ -33,6 +39,9 @@ class DataSetManager:
                 return toRet
         return None
     
+    '''
+    get a random image path of the dataset
+    '''
     def getRandomImage(self):
         # go in the imgs folder and get a random image from a random class
         classes = getClasses.getClasses()
@@ -43,6 +52,7 @@ class DataSetManager:
         return pathChosen + random.choice(images)        
     
     '''
+    The data will be a tuple
     return 0 => the training set, 1 => the convalidation set and 2 => the test set
     '''
     def partitionDataSet(self):
