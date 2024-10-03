@@ -9,10 +9,10 @@ class DataSetManager:
         self.imagesPath = "imgs/"
         self.jsonPath = "imgs\dataSet.json"
     
-    '''
-    get the entire dataset in a form of a list of image paths
-    '''
     def getAllImages(self):
+        '''
+        get the entire dataset in a form of a list of image paths in ORDER 
+        '''
         # get all the images from the imgs folder
         classes = getClasses.getClasses()
         images = []
@@ -27,24 +27,23 @@ class DataSetManager:
         
         return images
     
-    '''
-    given the path of the image, return the correct prediction of the image that ambrogio should return
-    '''
     def getCorrentPredictionOfImage(self,imagePath):
+        '''
+        given the path of the image, return the correct prediction of the image that ambrogio should return
+        '''
         # get the correct prediction of the image
         classes = getClasses.getClasses()
         for c in classes:
             if c in imagePath:
-                index = imagePath.index(c)
                 toRet = [0 for x in range(len(classes))]
                 toRet[classes.index(c)] = 1
                 return toRet
         return None
     
-    '''
-    get a random image path of the dataset
-    '''
     def getRandomImage(self):
+        '''
+        get a random image path of the dataset
+        '''
         # go in the imgs folder and get a random image from a random class
         classes = getClasses.getClasses()
         randomClass = random.choice(classes)
@@ -53,61 +52,38 @@ class DataSetManager:
         
         return pathChosen + random.choice(images)        
     
-    '''
-    The data will be a tuple
-    return 0 => the training set, 1 => the convalidation set and 2 => the test set
-    '''
     def partitionDataSet(self):
+        '''
+        The data will be a tuple
+        return 0 => the training set, 1 => the convalidation 
+        '''
         # partition the data set into training and test set
         images = self.getAllImages()
         random.shuffle(images)
-        trainingSet = images[:int(len(images)*0.3)]
-        convalidationSet = images[int(len(images)*0.3):int(len(images)*0.6)]
-        testSet = images[int(len(images)*0.6):]
+        trainingSet = images[:int(len(images)*0.7)]
+        convalidationSet = images[int(len(images)*0.7):]
         
         
-        return trainingSet,convalidationSet, testSet
-    
-    
-    def create_minibatches(self,X, y, batch_size):
-        # check if X and y are numpy arrays
-        if not isinstance(X, np.ndarray):
-            X = np.array(X)
-        if not isinstance(y, np.ndarray):
-            y = np.array(y)
-
-
-        indices = np.random.permutation(X.shape[0])
-        X_shuffled = X[indices]
-        y_shuffled = y[indices]
-        
-        # Dividi in batch
-        for start_idx in range(0, X.shape[0], batch_size):
-            end_idx = min(start_idx + batch_size, X.shape[0])
-            yield X_shuffled[start_idx:end_idx], y_shuffled[start_idx:end_idx]
-
-    def create_minibatches_from_scratch(self, batch_size):
-        featureExtractor = fe.FeatureExtractor()
-        X = self.getAllImages()
-        y = [self.getCorrentPredictionOfImage(image) for image in X]
-        X = [featureExtractor.extract_features(path) for path in X]
-        if not isinstance(X, np.ndarray):
-            X = np.array(X)
-        if not isinstance(y, np.ndarray):
-            y = np.array(y)
-
-
-        indices = np.random.permutation(X.shape[0])
-        X_shuffled = X[indices]
-        y_shuffled = y[indices]
-        
-        # Dividi in batch
-        for start_idx in range(0, X.shape[0], batch_size):
-            end_idx = min(start_idx + batch_size, X.shape[0])
-            yield X_shuffled[start_idx:end_idx], y_shuffled[start_idx:end_idx]
+        return trainingSet,convalidationSet
     
     def randomShuffleDataSet(self):
+        '''
+        get all the data set like 'getAllImages' but shuffled randomly
+        '''
         # shuffle the dataset
         images = self.getAllImages()
         random.shuffle(images)
         return images
+    
+    def convertPassedTargetsToTrainingTargets(self,targets: list):
+        '''
+        convert the passed targets to the training targets
+        exaple: [ [ 0 , 1 , 0 ] , [ 1 , 0 , 0 ] , [ 0 , 0 , 1 ] ] => [ 1 , 0 , 2 ]
+        
+        :param targets: the targets to convert
+        :return: the converted targets
+        '''
+        # convert the passed targets to the training targets
+        for i in range(len(targets)):
+            targets[i] = targets[i].index(1)
+        return targets

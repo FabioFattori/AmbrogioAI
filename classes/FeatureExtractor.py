@@ -5,9 +5,9 @@ import os
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-from keras.applications.vgg16 import VGG16, preprocess_input
-from keras.preprocessing import image
-from keras.models import Model
+from keras.applications.vgg16 import VGG16, preprocess_input # type: ignore
+from keras.preprocessing import image # type: ignore
+from keras.models import Model # type: ignore
 
 class FeatureExtractor:
 
@@ -21,7 +21,7 @@ class FeatureExtractor:
         Estrae le caratteristiche da un insieme di immagini.
 
         :param img_paths: Lista dei percorsi delle immagini.
-        :return: Caratteristiche ridotte a 2D.
+        :return: Caratteristiche ridotte a 2D => narray di lunghezza 4096.
         """
         features_list = []
         
@@ -44,7 +44,7 @@ class FeatureExtractor:
         features_array = np.array(features_list)
         features_array = self.normalize(features_array)
         # Riduci la dimensione delle feature estratte a 2D e visualizzale
-        return features_array.flatten()
+        return np.array(features_array.flatten())
     
     def normalize(self, data):
         return (data - np.min(data)) / (np.max(data) - np.min(data))

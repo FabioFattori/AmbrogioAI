@@ -1,16 +1,15 @@
-import classes.Ambrogio as A
+import classes.AmbrogioSimple as A
 from utilities import getClasses
 import utilities.drawANN as draw
 import classes.FeatureExtractor as fe
 import utilities.DataSetManager as dsm
 from tqdm import tqdm
-import classes.SoftMaxNeuron as sft
 
 print(getClasses.getClasses())
 
 dataSet = dsm.DataSetManager()
 featureExtractor = fe.FeatureExtractor()
-ambrogio = A.Ambrogio()
+ambrogio = A.AmbrogioSimple()
 
 print("si vuole caricare lo stato della rete neurale salvato se presente? [y/n]")
 if input() == 'y':
@@ -23,9 +22,7 @@ inputs = dataSet.randomShuffleDataSet()
 targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
 inputs = [featureExtractor.extract_features(path) for path in inputs]
 
-ambrogio.train(inputs,targets,10,1,True)
-ambrogio.train(inputs,targets,100,0.1,True)
-ambrogio.train(inputs,targets,200,0.01,True)
+ambrogio.train(inputs,targets)
 
 inputs = dataSet.getRandomImage()
 print(inputs)
@@ -44,20 +41,17 @@ except Exception as e:
     print("non ho capito")
 
 
-# print("si vuole disegnare la rete neurale? [y/n]")
-# if input() == 'y':
-#     try:
-#         with tqdm(total=100) as pbar:
-#             layers = ambrogio.getNeurons()
-#             g = draw.draw_neural_network(layers)
-#             pbar.update(50)
-#             g.render('Ambrogio', view=True,format='png')
-#             pbar.update(50)
+print("si vuole disegnare la rete neurale? [y/n]")
+if input() == 'y':
+    try:
         
-#     except Exception as e:
-#         print(e)
-#         print("Errore nel disegno del grafo del modello, probabilmente non hai inserito nel path il programma dot di graphviz")
-# else:
-#     print("ok, non disegno il grafo")
+            layers = ambrogio.getLayers()
+            g = draw.draw_neural_network(layers)
+            g.render('Ambrogio', view=True,format='png')
+    except Exception as e:
+        print(e)
+        print("Errore nel disegno del grafo del modello, probabilmente non hai inserito nel path il programma dot di graphviz")
+else:
+    print("ok, non disegno il grafo")
 
 
