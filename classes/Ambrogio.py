@@ -1,4 +1,4 @@
-import random
+import matplotlib.pyplot as plt
 import classes.Neuron as Neu
 import utilities.neuronIdGiver as id
 import classes.SoftMaxNeuron as sft
@@ -10,11 +10,6 @@ import numpy as np
 import classes.FeatureExtractor as fe
 import utilities.DataSetManager as dsm
 
-random.seed(1)
-
-maxRand = 10
-minRand = 1
-reducer = 10000
 
 class Ambrogio:
     def __init__(self,usingALoadedModel=False) -> None:
@@ -29,47 +24,62 @@ class Ambrogio:
             self.loadState()
     
     def createStructure(self):
-        # Create the neurons
-        i = 20
-        idGiver = id.IdGiver()
-        
-        # create the input layer with the same number of neurons as the number of features extracted from the images => 4096
-        layer = [Neu.Neuron(idGiver.giveId()) for x in range(4096)]
-        self.layers.append(layer)
-        
-        while i > 0:
-            if i-2 == 0:
-                layer = [Neu.Neuron(idGiver.giveId()) for x in range(len(getClasses.getClasses()))]
-            else:
-                layer = [Neu.Neuron(idGiver.giveId()) for x in range(i)]   
+        with tqdm(total=100) as pbar:
+            pbar.set_description("Creazione del layer di input...")
+            # Create the neurons
+            i = 200
+            idGiver = id.IdGiver()
             
+            # create the input layer with the same number of neurons as the number of features extracted from the images => 4096
+            layer = [Neu.Neuron(idGiver.giveId()) for x in range(4096)]
             self.layers.append(layer)
-            i-=2
+            pbar.update(20)
+            pbar.set_description("Creazione dei layer nascosti...")
+            while i > 0:
+                if i-2 == 0:
+                    layer = [Neu.Neuron(idGiver.giveId()) for x in range(len(getClasses.getClasses()))]
+                else:
+                    layer = [Neu.Neuron(idGiver.giveId()) for x in range(i)]   
+                
+                self.layers.append(layer)
+                i-=2
+            pbar.update(50)
+            pbar.set_description("Creazione del softmax neuron...")
             
-        
-        # create the softmax layer 
-        self.layers.append([sft.SoftMaxNeuron()])
-        
-        for i,layer in enumerate(self.layers):
-            if i == len(self.layers)-1:
-                break
-            weigthMatrix = self.initialize_weights((len(layer),len(self.layers[i+1])))
-            for j,neuron in enumerate(layer):
-                neuron.weights = weigthMatrix[j]
-        
-        # save derivatives per layer
-        derivatives = []
-        for i in range(len(self.layers)-1):
-            d = np.zeros((len(self.layers[i]), len(self.layers[i + 1])))
-            derivatives.append(d)
-        self.derivatives = derivatives
+            # create the softmax layer 
+            self.layers.append([sft.SoftMaxNeuron()])
 
-        # save activations per layer
+            pbar.update(10)
+            pbar.set_description("Inizializzazione dei pesi...")
+            
+            for i,layer in enumerate(self.layers):
+                if i == len(self.layers)-1:
+                    break
+                weigthMatrix = self.initialize_weights((len(layer),len(self.layers[i+1])))
+                for j,neuron in enumerate(layer):
+                    neuron.weights = weigthMatrix[j]
+            pbar.update(10)
+            pbar.set_description("ultimazione...")
+            # save derivatives per layer
+            self.inizializeDerivatives()
+            pbar.update(5)
+            # save activations per layer
+            self.initializeActivations()
+            pbar.update(5)
+    
+    def initializeActivations(self):
         activations = []
         for i in range(len(self.layers)):
             a = np.zeros(len(self.layers[i]))
             activations.append(a)
         self.activations = activations
+    
+    def inizializeDerivatives(self):
+        derivatives = []
+        for i in range(len(self.layers)-1):
+            d = np.zeros((len(self.layers[i]), len(self.layers[i + 1])))
+            derivatives.append(d)
+        self.derivatives = derivatives
 
     def getNeurons(self):
         return self.layers
@@ -89,7 +99,8 @@ class Ambrogio:
                     return neuron
         return None
     
-    def predict(self, inputs):        
+    def predict(self, inputs): 
+        self.initializeActivations() 
         # the input layer activation is just the input itself
         activations = inputs
 
@@ -106,6 +117,7 @@ class Ambrogio:
             #if i+1 < len(self.activations):
             self.activations[i+1] = activations
         # return output layer activation
+        
         predictions = self.layers[-1][0].calcFinalProbabilities(self.activations[-2])
         return predictions
         
@@ -179,7 +191,7 @@ class Ambrogio:
             error = np.dot(delta, self.getMatrixOfWeights()[i].T)
 
 
-    def train(self, inputs, targets, epochs, learning_rate):
+    def train(self, inputs, targets, epochs, learning_rate, momentum=False):
         """Trains model running forward prop and backprop
         Args:
             inputs (ndarray): X
@@ -187,39 +199,43 @@ class Ambrogio:
             epochs (int): Num. epochs we want to train the network for
             learning_rate (float): Step to apply to gradient descent
         """
+        manager = dsm.DataSetManager()
+        
+        errors = []
         # now enter the training loop
         for i in range(epochs):
-            firstError = 0
-            lastError = 0
-
+            last_error = 0
             # iterate through all the training data
             for j, input in enumerate(inputs):
                 target = targets[j]
 
-                # activate the network!
+                    # activate the network!
                 output = self.predict(input)
 
                 error = self.layers[-1][0].calcCrossEntropyLoss(target,output)
 
                 self.back_propagate(error)
 
-                # now perform gradient descent on the derivatives
-                # (this will update the weights
-                self.gradient_descent(learning_rate)
-
-                if j == 0:
-                    firstError = error
+                    # now perform gradient descent on the derivatives
+                    # this will update the weights
+                if momentum:
+                    self.gradient_descent_with_momentum(learning_rate)
                 else:
-                    lastError = error
+                    self.gradient_descent(learning_rate)
 
-            # Epoch complete, report the training error
-            print("=====")
-            print(f"Error at epoch {i}") 
-            print("error at the start of epoch => ",firstError)
-            print("error at the end of epoch => ",lastError)
-            print("=====")
+                    # keep track of the error as we train
+                last_error = error
+            errors.append(last_error)
+        plt.semilogy(range(len(errors)),errors)
+        plt.xlabel('number of batches per epoch')
+        plt.ylabel('Error')
+        print("last error => ",last_error)
+        plt.show()
+            
+
         print("Training complete!")
         print("=====")
+
 
 
     def gradient_descent(self, learningRate=1):
@@ -261,7 +277,6 @@ class Ambrogio:
     def loadState(self):
             data = np.load('state.npz')
             matrix = []
-            print(len(self.layers)-1)
             for i in range(len(self.layers)-1):
                 matrix.append(data[f'matrix{i+1}'])
             for i,layer in enumerate(self.layers):

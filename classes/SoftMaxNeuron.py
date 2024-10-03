@@ -16,7 +16,15 @@ class SoftMaxNeuron(Neu.Neuron):
     
 
     def calcCrossEntropyLoss(self, y, y_hat):
-        return -np.log(np.sum(y * y_hat))
+        # print("y => ",y)
+        # return -np.log(np.sum(y * y_hat))
+        # computing softmax values for predicted values
+        loss = 0
+        
+        for i in range(len(y_hat)):
+            loss = loss + (-1 * y[i]*np.log(y_hat[i]))
+    
+        return loss
 
     
     def calcFinalProbabilities(self, y):

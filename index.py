@@ -19,11 +19,13 @@ if input() == 'y':
         ambrogio.loadState()
         pbar.update(100)
 
-inputs = dataSet.getAllImages()
+inputs = dataSet.randomShuffleDataSet()
 targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
 inputs = [featureExtractor.extract_features(path) for path in inputs]
 
-ambrogio.train(inputs,targets,100,0.01)
+ambrogio.train(inputs,targets,10,1,True)
+ambrogio.train(inputs,targets,100,0.1,True)
+ambrogio.train(inputs,targets,200,0.01,True)
 
 inputs = dataSet.getRandomImage()
 print(inputs)

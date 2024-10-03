@@ -1,6 +1,8 @@
 import utilities.getClasses as getClasses
 import random
 import os
+import numpy as np
+import classes.FeatureExtractor as fe
 
 class DataSetManager:
     def __init__(self):
@@ -66,4 +68,46 @@ class DataSetManager:
         
         return trainingSet,convalidationSet, testSet
     
+    
+    def create_minibatches(self,X, y, batch_size):
+        # check if X and y are numpy arrays
+        if not isinstance(X, np.ndarray):
+            X = np.array(X)
+        if not isinstance(y, np.ndarray):
+            y = np.array(y)
+
+
+        indices = np.random.permutation(X.shape[0])
+        X_shuffled = X[indices]
+        y_shuffled = y[indices]
         
+        # Dividi in batch
+        for start_idx in range(0, X.shape[0], batch_size):
+            end_idx = min(start_idx + batch_size, X.shape[0])
+            yield X_shuffled[start_idx:end_idx], y_shuffled[start_idx:end_idx]
+
+    def create_minibatches_from_scratch(self, batch_size):
+        featureExtractor = fe.FeatureExtractor()
+        X = self.getAllImages()
+        y = [self.getCorrentPredictionOfImage(image) for image in X]
+        X = [featureExtractor.extract_features(path) for path in X]
+        if not isinstance(X, np.ndarray):
+            X = np.array(X)
+        if not isinstance(y, np.ndarray):
+            y = np.array(y)
+
+
+        indices = np.random.permutation(X.shape[0])
+        X_shuffled = X[indices]
+        y_shuffled = y[indices]
+        
+        # Dividi in batch
+        for start_idx in range(0, X.shape[0], batch_size):
+            end_idx = min(start_idx + batch_size, X.shape[0])
+            yield X_shuffled[start_idx:end_idx], y_shuffled[start_idx:end_idx]
+    
+    def randomShuffleDataSet(self):
+        # shuffle the dataset
+        images = self.getAllImages()
+        random.shuffle(images)
+        return images
