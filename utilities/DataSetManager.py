@@ -87,3 +87,58 @@ class DataSetManager:
         for i in range(len(targets)):
             targets[i] = targets[i].index(1)
         return targets
+    
+    def partitionDataSetRandomly(self,percTraining=0.7,percValidation=0.2,percTest=0.1):
+        '''
+        partition the dataset into training, validation and test set
+        '''
+        # partition the dataset into training, validation and test set
+        images = self.getAllImages()
+        random.shuffle(images)
+        trainingSet = images[:int(len(images)*percTraining)]
+        validationSet = images[int(len(images)*percTraining):int(len(images)*percTraining)+int(len(images)*percValidation)]
+        testSet = images[int(len(images)*percTraining)+int(len(images)*percValidation):]
+        
+        return trainingSet,validationSet,testSet
+    
+    def partitionDataSetEqualy(self,percTraining=0.7,percValidation=0.2,percTest=0.1):
+        '''
+        partition the dataset into training, validation and test set equaly for each class
+        '''
+        
+        # partition the dataset into training, validation and test set
+        images = self.getAllImages()
+        imagesWithClass = []
+        for i,img in enumerate(images):
+            target = self.getCorrentPredictionOfImage(img)
+            imagesWithClass.append({"img":img,"target":self.resolveTarget(target)})
+        
+        casual = []
+        elegante = []
+        sport = []
+        
+        
+        for i in imagesWithClass:
+            if i["target"] == "casual":
+                casual.append(i["img"])
+            elif i["target"] == "elegante":
+                elegante.append(i["img"])
+            elif i["target"] == "sportivo":
+                sport.append(i["img"])
+        
+        minLen = min(len(casual),len(elegante),len(sport))
+        percMin = minLen*percTraining
+        
+        TrainingSet = casual[:int(percMin)] + elegante[:int(percMin)] + sport[:int(percMin)]
+        ValidationSet = casual[int(percMin):int(percMin+minLen*percValidation)] + elegante[int(percMin):int(percMin+minLen*percValidation)] + sport[int(percMin):int(percMin+minLen*percValidation)]
+        TestSet = casual[int(percMin+minLen*percValidation):] + elegante[int(percMin+minLen*percValidation):] + sport[int(percMin+minLen*percValidation):]
+        
+        return TrainingSet,ValidationSet,TestSet
+        
+    def resolveTarget(self,target):
+        '''
+        resolve the target to the class
+        '''
+        # resolve the target to the class
+        classes = getClasses.getClasses()
+        return classes[target.index(1)]
