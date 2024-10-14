@@ -3,8 +3,6 @@ from utilities import getClasses
 import classes.FeatureExtractor as fe
 import utilities.DataSetManager as dsm
 from tqdm import tqdm
-from utilities.PhotoTaker import takePhoto
-import time
 
 dataSet = dsm.DataSetManager()
 featureExtractor = fe.FeatureExtractor()
@@ -17,14 +15,11 @@ if input() == 'y':
         ambrogio.loadState()
         pbar.update(100)
 
-continueGuessing = True
-while continueGuessing:
-    path = takePhoto()
-    input = featureExtractor.extract_features(path)
-    out = ambrogio.predict(input)
-    ambrogio.showPrediction(out)
-    time.sleep(10)
+inputs = dataSet.randomShuffleDataSet()
+targets = [dataSet.getCorrentPredictionOfImage(image) for image in inputs]
+inputs = [featureExtractor.extract_features(path) for path in inputs]
 
+ambrogio.train(inputs,targets)
 
 print("si vuole salvare lo stato della rete neurale? [y/n]")
 try:

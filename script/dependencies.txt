@@ -10,3 +10,5 @@ scikit-learn
 tqdm
 prettytable
 graphviz
+opencv-python
+python3-picamera
