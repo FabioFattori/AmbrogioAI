@@ -52,6 +52,10 @@ def takePhoto():
         # Accedi alla telecamera (di solito l'indice 0 è la telecamera principale)
         cap = cv2.VideoCapture(0)
 
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
+
         if not cap.isOpened():
             print("Errore: impossibile accedere alla telecamera.")
         else:
@@ -59,8 +63,15 @@ def takePhoto():
             ret, frame = cap.read()
 
             if ret:
-                # Salva l'immagine catturata
-                cv2.imwrite(file_path, frame)
+
+                # Converti in scala di grigi
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                
+                # Equalizzazione dell'istogramma per migliorare il contrasto
+                enhanced_image = cv2.equalizeHist(gray)
+                
+                # Salva l'immagine migliorata
+                cv2.imwrite(file_path, enhanced_image)
                 print(f"Foto salvata in {file_path}")
             else:
                 print("Errore: impossibile catturare l'immagine.")

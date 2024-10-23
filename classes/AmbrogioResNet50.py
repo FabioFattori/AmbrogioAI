@@ -37,8 +37,8 @@ class AmbrogioNet50:
                 
     def setDevice(self):
         # Verifica se è disponibile la GPU e imposta il device di conseguenza
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = self.model.to(device)
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.model = self.model.to(self.device)
         
     def optimizerResolver(self,mode:Optimazer) -> optim:
         if mode == Optimazer.Adam:
@@ -50,5 +50,57 @@ class AmbrogioNet50:
         
         raise Exception("Optimizer not supported")
     
+    import utilities.DataSetManager as dsm
 
-    # TODO implementare il metodo di training del modello
+    def train_model(self, num_epochs=25):
+        dataManager = dsm.DataSetManager()
+        dataloaders, dataset_sizes = dataManager.getSetForRes50()
+        for epoch in range(num_epochs):
+            print(f'Epoch {epoch}/{num_epochs - 1}')
+            print('-' * 10)
+
+            # Ogni epoca ha una fase di addestramento e una di validazione
+            for phase in ['train', 'val']:
+                if phase == 'train':
+                    self.model.train()  # Imposta il modello in modalità addestramento
+                else:
+                    self.model.eval()   # Imposta il modello in modalità valutazione
+
+                running_loss = 0.0
+                running_corrects = 0
+
+                # Itera sui dati
+                for inputs, labels in dataloaders[phase]:
+                    inputs = inputs.to(self.device)
+                    labels = labels.to(self.device)
+
+                    # Azzera i gradienti dei parametri
+                    self.optimizer.zero_grad()
+
+                    # Forward pass
+                    with torch.set_grad_enabled(phase == 'train'):
+                        outputs = self.model(inputs)
+                        _, preds = torch.max(outputs, 1)
+                        loss = self.criterion(outputs, labels)
+
+                        # Backward + ottimizzazione solo nella fase di addestramento
+                        if phase == 'train':
+                            loss.backward()
+                            self.optimizer.step()
+
+                    # Statistiche
+                    running_loss += loss.item() * inputs.size(0)
+                    running_corrects += torch.sum(preds == labels.data)
+
+                if phase == 'train':
+                    self.scheduler.step()
+
+                epoch_loss = running_loss / dataset_sizes[phase]
+                epoch_acc = running_corrects.double() / dataset_sizes[phase]
+
+                print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+
+        #return self.model
+    
+    def save_model(self, path = "AmbrogioResNet50.pth"):
+        torch.save(self.model.state_dict(), path)
